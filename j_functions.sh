@@ -166,6 +166,9 @@ elif [ "$TYPE" = "caf" ]
 then
 pushAfterBuild=true
 fi
+
+cdecho "BUILD" $blue "syncSource: clean sync branches..." $nocolor
+git branch -d cafsync_$BUILD_NUMBER && git branch -d chaosdroidsync_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "syncSource: $line" $nocolor >&2; done)
 }
 ############################################################################################################################
 function gen_changelog {
