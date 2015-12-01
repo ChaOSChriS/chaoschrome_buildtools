@@ -199,7 +199,7 @@ gen_changelog
 gen_changelog >> $SWE_DIR/chaosdroid_release/"$apk_string"_changelog.txt
 echo -e "   $blue## [BUILD]$nocolor: getReady: Generating Makefiles (runhooks)...$nocolor"
 source $SWE_DIR/src/build/android/envsetup.sh
-time gclient runhooks -j$NRJOBS > >(while read line; do cdecho "gclient" $blue $line $nocolor >&2; done)
+time gclient runhooks -j$NRJOBS > >(while read line; do cdecho "gclient" $blue "$line" $nocolor >&2; done)
 }
 ############################################################################################################################
 function buildAPK {
