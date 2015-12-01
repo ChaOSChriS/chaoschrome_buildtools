@@ -152,7 +152,7 @@ then
 pushAfterBuild=false
 cd $SWE_DIR/src.chaosdroid/chrome/android
 cdecho "DEBUG" $red "checking branches after fresh sync" $nocolor ########################
-git branch > >(while read line; do cdecho "DEBUG" $blue $line $nocolor >&2; done) ########################
+git branch > >(while read line; do cdecho "DEBUG" $red "$line" $nocolor >&2; done) ########################
 git checkout -b chaosdroidsync_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
 cdecho "DEBUG" $red "checking branches after fresh sync" $nocolor ########################
 git branch > >(while read line; do cdecho "DEBUG" $red "$line" $nocolor >&2; done) ########################
