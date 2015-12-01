@@ -76,7 +76,7 @@ if [ -d "$SWE_DIR/src/" ]; then
 rm -fr $SWE_DIR/src/
 fi
 if [ -d "$SWE_DIR/src.chaosdroid/" ]; then
-rm -fr $SWE_DIR/src.chaosdroid/
+find . ! -name 'buildtools' -type d -exec rm -rf {} +
 fi
 if [ -d "$SWE_DIR/chaosdroid_release/" ]; then
 rm -fr $SWE_DIR/chaosdroid_release/
