@@ -115,6 +115,10 @@ rm -fr $SWE_DIR/tmp_release_cchrome
 fi
 mkdir $SWE_DIR/chaosdroid_release
 
+cdecho "BUILD" $blue "syncSource: Initialising sync..." $nocolor
+cd $SWE_DIR/src && git checkout -b gclient_m46_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "syncSource: $line" $nocolor >&2; done)
+
+cd $SWE_DIR
 cdecho "BUILD" $blue "syncSource: sync caf-code..." $nocolor
 #echo -e "   $blue## [BUILD]$nocolor: syncSource: sync caf-code...$nocolor"
 gclient sync -j$NRJOBS  --nohooks --no-nag-max  --delete_unversioned_trees --force --reset> >(while read line; do cdecho "gclient" $blue "$line" $nocolor >&2; done)
