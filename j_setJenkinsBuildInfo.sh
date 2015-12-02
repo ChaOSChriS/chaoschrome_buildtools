@@ -9,4 +9,7 @@ fi
 if [ "$param_exp" ] ; then 
 APKNAME=$APKNAME"_exp"
 fi
+if [ ! -d "$WORKSPACE/chaosdroid/" ]; then
+mkdir $WORKSPACE/chaosdroid/
+fi
 echo $APKNAME > "$WORKSPACE/chaosdroid/env_job_version_name"
