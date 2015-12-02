@@ -75,8 +75,8 @@ echo -e "   $blue## [BUILD]$nocolor: cleanENV: do a clean build, cleaning...$noc
 if [ -d "$SWE_DIR/src/" ]; then
 rm -fr $SWE_DIR/src/
 fi
-if [ -d "$SWE_DIR/src.chaosdroid/" ]; then
-find . ! -name 'buildtools' -type d -exec rm -rf {} +
+if [ -d "$SWE_DIR/src.chaosdroid/chrome/android/" ]; then
+rm -fr $SWE_DIR/src.chaosdroid/chrome/android/
 fi
 if [ -d "$SWE_DIR/chaosdroid_release/" ]; then
 rm -fr $SWE_DIR/chaosdroid_release/
