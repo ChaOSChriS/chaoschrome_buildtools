@@ -203,8 +203,8 @@ time gclient runhooks -j$NRJOBS > >(while read line; do cdecho "gclient" $blue "
 }
 ############################################################################################################################
 function buildAPK {
-dl_link="http://chaosdroid.com/jenkins/job/chrome4sdp-beta/$BUILD_NUMBER/artifact/chaosdroid_release/$apk_string.apk"
- #echo -e "   $blue## [BUILD][version]"$apk_string".apk"
+#dl_link="http://chaosdroid.com/jenkins/job/chrome4sdp-beta/$BUILD_NUMBER/artifact/chaosdroid_release/$apk_string.apk"
+cdecho "buildAPK" $blue "setting build-description to: APKName:"$apk_string".apk" $nocolor
  echo "download:download: ,link:<a href="$dl_link">$apk_string.apk</a>h"
  echo -e "   $blue## [BUILD]$nocolor: buildAPK: Building "$apk_string".apk ...$nocolor"
  cd $SWE_DIR/src
