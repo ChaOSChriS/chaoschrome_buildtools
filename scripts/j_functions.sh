@@ -45,8 +45,8 @@ if [ "$TYPE" = "caf" ]
 then
 	export GYP_DEFINES="OS=android clang=0"
     cd $SWE_DIR
-	[ -f ".gclient.$BRANCH.caf" ] || exit
-	ln -nsf .gclient.$BRANCH.caf .gclient
+	[ -f "$BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.caf" ] || exit
+	ln -nsf $BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.caf .gclient
 	APKNAME=SWE_Browser
     
     if [ -d "$SWE_DIR/src/" ]; then
@@ -58,11 +58,11 @@ elif [ "$TYPE" = "release" ]
 then
 	export GYP_DEFINES="OS=android clang=0"
     cd $SWE_DIR
-	[ -f ".gclient.$BRANCH.chaosdroid" ] || exit
-	ln -nsf .gclient.$BRANCH.chaosdroid .gclient
+	[ -f "$BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.chaosdroid" ] || exit
+	ln -nsf $BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.chaosdroi .gclient
     APKNAME=ChaosChrome
-    if [ -d "$SWE_DIR/src.chaosdroid/chrome/android/" ]; then
-    cd $SWE_DIR/src.chaosdroid/chrome/android
+    if [ -d "$CD_DIR/src.chaosdroid/chrome/android/" ]; then
+    cd $CD_DIR/src.chaosdroid/chrome/android/
     REV=$(git log HEAD --pretty=format:'%h' -n 1)
     fi
 fi
@@ -75,11 +75,11 @@ echo -e "   $blue## [BUILD]$nocolor: cleanENV: do a clean build, cleaning...$noc
 if [ -d "$SWE_DIR/src/" ]; then
 rm -fr $SWE_DIR/src/
 fi
-if [ -d "$SWE_DIR/src.chaosdroid/chrome/android/" ]; then
-rm -fr $SWE_DIR/src.chaosdroid/chrome/android/
+if [ -d "$CD_DIR/src.chaosdroid/chrome/android/" ]; then
+rm -fr $CD_DIR/src.chaosdroid/chrome/android/
 fi
-if [ -d "$SWE_DIR/chaosdroid_release/" ]; then
-rm -fr $SWE_DIR/chaosdroid_release/
+if [ -d "$CD_DIR/chaosdroid_release/" ]; then
+rm -fr $CD_DIR/chaosdroid_release/
 fi
 echo -e "   $blue## [BUILD]$nocolor: cleanENV: done with cleaning...$nocolor"
 fi
@@ -107,13 +107,13 @@ function syncSource {
 if [ -d "$SWE_DIR/src/out/" ]; then
 rm -fr $SWE_DIR/src/out/
 fi
-if [ -d "$SWE_DIR/chaosdroid_release/" ]; then
-rm -fr $SWE_DIR/chaosdroid_release/
+if [ -d "$CD_DIR/chaosdroid_release/" ]; then
+rm -fr $CD_DIR/chaosdroid_release/
 fi
 if [ -d "$SWE_DIR/tmp_release_cchrome" ]; then
 rm -fr $SWE_DIR/tmp_release_cchrome
 fi
-mkdir $SWE_DIR/chaosdroid_release
+mkdir $CD_DIR/chaosdroid_release
 
 cdecho "BUILD" $blue "syncSource: Initialising sync..." $nocolor
 cd $SWE_DIR/src && git checkout -b gclient_m46_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "syncSource: $line" $nocolor >&2; done)
@@ -154,7 +154,7 @@ fi
 if [ "$TYPE" = "release" ]
 then
 pushAfterBuild=false
-cd $SWE_DIR/src.chaosdroid/chrome/android
+cd $CD_DIR/src.chaosdroid/chrome/android
 cdecho "DEBUG" $red "checking branches after fresh sync" $nocolor ########################
 git branch > >(while read line; do cdecho "DEBUG" $red "$line" $nocolor >&2; done) ########################
 git checkout -b chaosdroidsync_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
@@ -176,7 +176,7 @@ git branch -d gclient_m46_$BUILD_NUMBER && git branch -d cafsync_$BUILD_NUMBER &
 }
 ############################################################################################################################
 function gen_changelog {
-cd $SWE_DIR/src.chaosdroid/chrome/android/
+cd $CD_DIR/src.chaosdroid/chrome/android/
 echo -e \
 "   $blue$bold#############################################################################################$nocolor"\
 "\n   $blue$bold## Project:$nobold$nocolor Chromium Browser for Snapdragon"\
@@ -196,7 +196,7 @@ function getReady {
 apk_string="$APKNAME"_"$TYPE"_"$BRANCH"_"$newREV"
 echo -e "   $blue## [BUILD]$nocolor: getReady: Generating Changelog ...$nocolor\n" # blue build string as variable!! TODO 
 gen_changelog
-gen_changelog >> $SWE_DIR/chaosdroid_release/"$apk_string"_changelog.txt
+gen_changelog >> $CD_DIR/chaosdroid_release/"$apk_string"_changelog.txt
 echo -e "   $blue## [BUILD]$nocolor: getReady: Generating Makefiles (runhooks)...$nocolor"
 source $SWE_DIR/src/build/android/envsetup.sh
 time gclient runhooks -j$NRJOBS > >(while read line; do cdecho "gclient" $blue "$line" $nocolor >&2; done)
@@ -209,6 +209,6 @@ cdecho "buildAPK" $blue "setting build-description to: APKName:"$apk_string".apk
  echo -e "   $blue## [BUILD]$nocolor: buildAPK: Building "$apk_string".apk ...$nocolor"
  cd $SWE_DIR/src
  time ninja -j$NRJOBS -C $BUILD_FLAVOR $1 > >(while read line; do cdecho "ninja" $blue $line $nocolor >&2; done)
- cp $SWE_DIR/src/out/Release/apks/SWE_Browser.apk $SWE_DIR/chaosdroid_release/"$apk_string".apk
+ cp $SWE_DIR/src/out/Release/apks/SWE_Browser.apk $CD_DIR/chaosdroid_release/"$apk_string".apk
 }
 ############################################################################################################################

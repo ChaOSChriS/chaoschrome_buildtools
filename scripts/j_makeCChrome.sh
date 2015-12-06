@@ -17,6 +17,8 @@ last_build_number=$BUILD_NUMBER -1
 lastbuild_dir="$JENKINS_HOME/jobs/chrome4sdp-beta/builds/$last_build_number"
 jobdir="$JENKINS_HOME/jobs/chrome4sdp-beta/builds/$BUILD_NUMBER"
 SWE_DIR=$WORKSPACE
+CD_DIR=$SWE_DIR/chaosdroid
+BUILDTOOLS_DIR=$CD_DIR/buildtools
 BUILD_FLAVOR=out/Release
 BRANCH=$param_branch
 TYPE=$param_type
@@ -27,7 +29,7 @@ cafsync_commit_msg="caf chromium build-tools src sync #"$BUILD_NUMBER_$(date +"%
 ############################################################################################################################
 
 # import functions
-source $SWE_DIR/src.chaosdroid/buildtools/j_functions.sh
+source $BUILDTOOLS_DIR/scripts/j_functions.sh
 
 ############################################################################################################################
 
@@ -82,7 +84,7 @@ time buildAPK swe_browser_apk
 
 #after push (type=caf only)
 if [ "$pushAfterBuild" = true ] ; then
-cd $SWE_DIR/src.chaosdroid/chrome/android
+cd $CD_DiR/src.chaosdroid/chrome/android
 git checkout -b chaosdroidsync_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue $line $nocolor >&2; done)
 echo -e "   $blue## [BUILD]$nocolor: syncSource: updating chaosdroid remote repository ...$nocolor"
 git pull -X subtree=chrome/android $SWE_DIR/src/ src.chrome.android #:m46
