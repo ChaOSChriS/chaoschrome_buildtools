@@ -75,8 +75,8 @@ echo -e "   $blue## [BUILD]$nocolor: cleanENV: do a clean build, cleaning...$noc
 if [ -d "$SWE_DIR/src/" ]; then
 rm -fr $SWE_DIR/src/
 fi
-if [ -d "$SWE_DIR/src.chaosdroid/" ]; then
-rm -fr $SWE_DIR/src.chaosdroid/
+if [ -d "$SWE_DIR/src.chaosdroid/chrome/android/" ]; then
+rm -fr $SWE_DIR/src.chaosdroid/chrome/android/
 fi
 if [ -d "$SWE_DIR/chaosdroid_release/" ]; then
 rm -fr $SWE_DIR/chaosdroid_release/
@@ -115,6 +115,10 @@ rm -fr $SWE_DIR/tmp_release_cchrome
 fi
 mkdir $SWE_DIR/chaosdroid_release
 
+cdecho "BUILD" $blue "syncSource: Initialising sync..." $nocolor
+cd $SWE_DIR/src && git checkout -b gclient_m46_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "syncSource: $line" $nocolor >&2; done)
+
+cd $SWE_DIR
 cdecho "BUILD" $blue "syncSource: sync caf-code..." $nocolor
 #echo -e "   $blue## [BUILD]$nocolor: syncSource: sync caf-code...$nocolor"
 gclient sync -j$NRJOBS  --nohooks --no-nag-max  --delete_unversioned_trees --force --reset> >(while read line; do cdecho "gclient" $blue "$line" $nocolor >&2; done)
@@ -152,7 +156,7 @@ then
 pushAfterBuild=false
 cd $SWE_DIR/src.chaosdroid/chrome/android
 cdecho "DEBUG" $red "checking branches after fresh sync" $nocolor ########################
-git branch > >(while read line; do cdecho "DEBUG" $blue $line $nocolor >&2; done) ########################
+git branch > >(while read line; do cdecho "DEBUG" $red "$line" $nocolor >&2; done) ########################
 git checkout -b chaosdroidsync_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
 cdecho "DEBUG" $red "checking branches after fresh sync" $nocolor ########################
 git branch > >(while read line; do cdecho "DEBUG" $red "$line" $nocolor >&2; done) ########################
@@ -166,6 +170,9 @@ elif [ "$TYPE" = "caf" ]
 then
 pushAfterBuild=true
 fi
+
+cdecho "BUILD" $blue "syncSource: clean sync branches..." $nocolor
+git branch -d gclient_m46_$BUILD_NUMBER && git branch -d cafsync_$BUILD_NUMBER && git branch -d chaosdroidsync_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "syncSource: $line" $nocolor >&2; done)
 }
 ############################################################################################################################
 function gen_changelog {
@@ -192,12 +199,12 @@ gen_changelog
 gen_changelog >> $SWE_DIR/chaosdroid_release/"$apk_string"_changelog.txt
 echo -e "   $blue## [BUILD]$nocolor: getReady: Generating Makefiles (runhooks)...$nocolor"
 source $SWE_DIR/src/build/android/envsetup.sh
-time gclient runhooks -j$NRJOBS > >(while read line; do cdecho "gclient" $blue $line $nocolor >&2; done)
+time gclient runhooks -j$NRJOBS > >(while read line; do cdecho "gclient" $blue "$line" $nocolor >&2; done)
 }
 ############################################################################################################################
 function buildAPK {
-dl_link="http://chaosdroid.com/jenkins/job/chrome4sdp-beta/$BUILD_NUMBER/artifact/chaosdroid_release/$apk_string.apk"
- #echo -e "   $blue## [BUILD][version]"$apk_string".apk"
+#dl_link="http://chaosdroid.com/jenkins/job/chrome4sdp-beta/$BUILD_NUMBER/artifact/chaosdroid_release/$apk_string.apk"
+cdecho "buildAPK" $blue "setting build-description to: APKName:"$apk_string".apk" $nocolor
  echo "download:download: ,link:<a href="$dl_link">$apk_string.apk</a>h"
  echo -e "   $blue## [BUILD]$nocolor: buildAPK: Building "$apk_string".apk ...$nocolor"
  cd $SWE_DIR/src
