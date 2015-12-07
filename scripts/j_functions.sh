@@ -90,7 +90,7 @@ if [ $# -eq 1 ] && [ "$1" = "depot_tools" ]
 then
 cdecho "BUILD" $blue " checkBuildTools: Checking depot_tools ..." $nocolor
 cd $SWE_DIR
-[ -d "depot_tools" ] || git clone git://codeaurora.org/quic/chrome4sdp/chromium/tools/depot_tools.git > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
+[ -d "depot_tools" ] || echo y | git clone git://codeaurora.org/quic/chrome4sdp/chromium/tools/depot_tools.git > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
 export PATH="$SWE_DIR/depot_tools:$PATH"
 
 elif [ $# -eq 1 ] && [ "$1" = "android-sdks" ]
