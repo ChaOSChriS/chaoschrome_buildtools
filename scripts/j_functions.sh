@@ -133,7 +133,7 @@ cdecho "DEBUG" $red "checking branches after fresh sync" $nocolor ##############
 git branch > >(while read line; do cdecho "DEBUG" $red "$line" $nocolor >&2; done) ########################
 
 git checkout -b cafsync_$BUILD_NUMBER
-git commit -a -m $cafsync_commit_msg
+git commit -m $cafsync_commit_msg
 
 git branch > >(while read line; do cdecho "DEBUG" $red "$line" $nocolor >&2; done) ########################
 
