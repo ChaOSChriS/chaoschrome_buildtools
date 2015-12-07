@@ -5,10 +5,16 @@ solutions = [
     "deps_file"   : "DEPS",
     "managed"     : True,
     "safesync_url": "",
-"custom_deps" : {
-      "src.chaosdroid/chrome/android" : "git@github.com:ChaOSChriS/chaoschrome_beta.git@refs/remotes/origin/m46"   
- }
+"custom_deps" : {} 
   },
+   { "name"        : "chaosdroid/src.chaosdroid/chrome/android",
+    "url"         : "git@github.com:ChaOSChriS/chaoschrome_beta.git@refs/remotes/origin/m46",
+    "custom_deps" : {}
+  }
+  },
+   { "name"        : "chaosdroid/buildtools",
+    "url"         : "git@github.com:ChaOSChriS/chaoschrome_buildtools.git",
+    "custom_deps" : {}
+  }
 ]
 target_os = ["android"]
-
