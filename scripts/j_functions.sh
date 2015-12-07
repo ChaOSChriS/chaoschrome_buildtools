@@ -71,7 +71,7 @@ fi
 function cleanENV {
 if [ "$param_cleanbuild" = true ]
 then
-cdecho "BUILD" $blue " cleanENV: do a clean build, cleaning..." $nocolor
+cdecho "BUILD" $blue "cleanENV: do a clean build, cleaning..." $nocolor
 if [ -d "$SWE_DIR/src/" ]; then
 rm -fr $SWE_DIR/src/
 fi
@@ -81,14 +81,14 @@ fi
 if [ -d "$CD_DIR/chaosdroid_release/" ]; then
 rm -fr $CD_DIR/chaosdroid_release/
 fi
-cdecho "BUILD" $blue " cleanENV: done with cleaning..." $nocolor
+cdecho "BUILD" $blue "cleanENV: done with cleaning..." $nocolor
 fi
 }
 ############################################################################################################################
 function checkBuildTools {
 if [ $# -eq 1 ] && [ "$1" = "depot_tools" ]
 then
-cdecho "BUILD" $blue " checkBuildTools: Checking depot_tools ..." $nocolor
+cdecho "BUILD" $blue "checkBuildTools: Checking depot_tools ..." $nocolor
 cd $SWE_DIR
 [ -d "depot_tools" ] || echo y | git clone git://codeaurora.org/quic/chrome4sdp/chromium/tools/depot_tools.git > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
 export PATH="$SWE_DIR/depot_tools:$PATH"
