@@ -59,7 +59,7 @@ then
 	export GYP_DEFINES="OS=android clang=0"
     cd $SWE_DIR
 	[ -f "$BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.chaosdroid" ] || exit
-	ln -nsf $BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.chaosdroi .gclient
+	ln -nsf $BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.chaosdroid .gclient
     APKNAME=ChaosChrome
     if [ -d "$CD_DIR/src.chaosdroid/chrome/android/" ]; then
     cd $CD_DIR/src.chaosdroid/chrome/android/
