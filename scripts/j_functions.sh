@@ -215,7 +215,7 @@ function buildAPK {
 cdecho "buildAPK" $blue "setting build-description to: APKName:"$apk_string".apk" $nocolor
  cdecho "BUILD" $blue "buildAPK: Building "$apk_string".apk ..." $nocolor
  cd $SWE_DIR/src
- time ninja -j$NRJOBS -C $BUILD_FLAVOR $1 > >(while read line; do cdecho "ninja" $blue $line $nocolor >&2; done)
+ time ninja -j$NRJOBS -C $BUILD_FLAVOR $1 > >(while read line; do cdecho "ninja" $blue "$line" $nocolor >&2; done)
  cp $SWE_DIR/src/out/Release/apks/SWE_Browser.apk $CD_DIR/chaosdroid_release/"$apk_string".apk
 }
 ############################################################################################################################
