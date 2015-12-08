@@ -104,22 +104,25 @@ fi
 }
 ############################################################################################################################
 function syncSource {
+SYNCTYPE=$1
+
 if [ -d "$SWE_DIR/src/out/" ]; then
 rm -fr $SWE_DIR/src/out/
 fi
+
 if [ -d "$CD_DIR/chaosdroid_release/" ]; then
 rm -fr $CD_DIR/chaosdroid_release/
-fi
-if [ -d "$SWE_DIR/tmp_release_cchrome" ]; then
-rm -fr $SWE_DIR/tmp_release_cchrome
-fi
 mkdir $CD_DIR/chaosdroid_release
+fi
 
 if [ -d "$SWE_DIR/src/" ]; then
 cdecho "BUILD" $blue "syncSource: Initialising sync..." $nocolor
-cd $SWE_DIR/src && git checkout -b gclient_m46_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "syncSource: $line" $nocolor >&2; done)
+cd $SWE_DIR/src 
+git checkout -b gclient_m46_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "syncSource: $line" $nocolor >&2; done)
 fi
 
+if [ "$SYNCTYPE" = "caf" ]
+then
 cd $SWE_DIR
 cdecho "BUILD" $blue "syncSource: sync caf-code..." $nocolor
 gclient sync -j$NRJOBS  --nohooks --no-nag-max  --delete_unversioned_trees --force --reset> >(while read line; do cdecho "gclient" $blue "$line" $nocolor >&2; done)
@@ -155,9 +158,8 @@ git subtree pull --prefix=chrome/android origin m46 > >(while read line; do cdec
 newREV=$(git log --pretty=format:'%h' -n 1)
 fi
 
-if [ "$TYPE" = "release" ]
+elif [ "$SYNCTYPE" = "chaosdroid" ]
 then
-pushAfterBuild=false
 cd $CD_DIR/src.chaosdroid/chrome/android
 
 cdecho "DEBUG" $red "checking branches after fresh sync" $nocolor ########################
@@ -173,10 +175,6 @@ git pull -X subtree=chrome/android $SWE_DIR/src/ src.chrome.android > >(while re
 #git subtree pull --prefix=chrome/android $SWE_DIR/src/ src.chrome.android
 newREV=$(git log --pretty=format:'%h' -n 1)
 git push $CGIT chaosdroidsync_$BUILD_NUMBER:m46 > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
-
-elif [ "$TYPE" = "caf" ]
-then
-pushAfterBuild=true
 fi
 
 cdecho "BUILD" $blue "syncSource: clean sync branches..." $nocolor
