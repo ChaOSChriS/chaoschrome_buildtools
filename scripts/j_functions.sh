@@ -126,19 +126,15 @@ then
 cd $SWE_DIR
 cdecho "BUILD" $blue "syncSource: sync caf-code..." $nocolor
 gclient sync -j$NRJOBS  --nohooks --no-nag-max  --delete_unversioned_trees --force --reset> >(while read line; do cdecho "gclient" $blue "$line" $nocolor >&2; done)
+
 cdecho "BUILD" $blue "syncSource: Cleaning with git..." $nocolor
 gclient recurse -j$NRJOBS git clean -fdx .> >(while read line; do cdecho "gclient" $blue "$line" $nocolor >&2; done)
 
 checkBuildTools "android-sdks"
 
 cd $SWE_DIR/src/
-cdecho "DEBUG" $red "checking branches after fresh sync" $nocolor ########################
-git branch > >(while read line; do cdecho "DEBUG" $red "$line" $nocolor >&2; done) ########################
-
 git checkout -b cafsync_$BUILD_NUMBER
 git commit -m $cafsync_commit_msg
-
-git branch > >(while read line; do cdecho "DEBUG" $red "$line" $nocolor >&2; done) ########################
 
 if [ "$param_cleanbuild" = true ] ; then
 cdecho "BUILD" $blue "syncSource: because we have a clean caf-repo split src/chrome/android/ as subtree into new branch chrome.android.subtree..." $nocolor
@@ -146,13 +142,8 @@ cdecho "BUILD" $blue "syncSource: caf-chromium repo is 8GB+, this will take fore
 cd $SWE_DIR/src/
 git subtree split -P chrome/android -b src.chrome.android > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)          
 cdecho "BUILD" $blue "syncSource: yeah... we are done with splitting (Y)..." $nocolor
-
 else
 cd $SWE_DIR/src/
-
-cdecho "DEBUG" $red "checking branches after fresh sync" $nocolor ########################
-git branch > >(while read line; do cdecho "DEBUG" $red "$line" $nocolor >&2; done) ########################
-
 cdecho "BUILD" $blue "syncSource: updating src/chrome/android/ from caf ..." $nocolor
 git subtree pull --prefix=chrome/android origin m46 > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
 newREV=$(git log --pretty=format:'%h' -n 1)
@@ -161,15 +152,7 @@ fi
 elif [ "$SYNCTYPE" = "chaosdroid" ]
 then
 cd $CD_DIR/src.chaosdroid/chrome/android
-
-cdecho "DEBUG" $red "checking branches after fresh sync" $nocolor ########################
-git branch > >(while read line; do cdecho "DEBUG" $red "$line" $nocolor >&2; done) ########################
-
 git checkout -b chaosdroidsync_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
-
-cdecho "DEBUG" $red "checking branches after fresh sync" $nocolor ########################
-git branch > >(while read line; do cdecho "DEBUG" $red "$line" $nocolor >&2; done) ########################
-
 cdecho "BUILD" $blue "syncSource: updating src.chaosdroid/chrome/android from caf ..." $nocolor
 git pull -X subtree=chrome/android $SWE_DIR/src/ src.chrome.android > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done) #:m46 
 #git subtree pull --prefix=chrome/android $SWE_DIR/src/ src.chrome.android
