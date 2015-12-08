@@ -190,7 +190,7 @@ echo -e \
 "\n   $blue$bold## Project:$nobold$nocolor Chromium Browser for Snapdragon"\
 "\n   $blue$bold## Branch:$nobold$nocolor $param_type"\
 "\n   $blue$bold## Build-Type:$nobold$nocolor $param_branch"\
-"\n   $blue$bold## Build-Number:$nobold$nocolor $BUILD_NUMBER"
+"\n   $blue$bold## Build-Number:$nobold$nocolor $BUILD_NUMBER"\
 "\n   $blue$bold## Revision (current hash):$nobold$nocolor $newREV"\
 "\n   $blue$bold#############################################################################################$nocolor"\ 
 "\n   $blue$bold## Changelog: :$nobold\n"
