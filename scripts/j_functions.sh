@@ -83,7 +83,6 @@ if [ "$param_exp" ] ; then
 	ln -nsf $BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.$SYNCTYPE.exp $SWE_DIR/.gclient
 	cdecho "BUILD" $blue "preparingBuild: set exp gclient-config" $nocolor
 	cdecho "BUILD" $blue "preparingBuild: $BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.$SYNCTYPE.exp -> $SWE_DIR/.gclient" $nocolor
-	# cp exp gclient=>ssh
 fi
 }
 ############################################################################################################################
@@ -213,15 +212,42 @@ cd $CD_DIR/src.chaosdroid/chrome/android/
 git log --pretty=format:'%h (%an) : %s' --graph $beforeREV^..$afterREV > >(while read line; do changelog+="   ## $line" >&2; done)
 fi
 
-apk_string="$APKNAME"_"$SYNCTYPE"_"$BRANCH"_"$afterREV"
+buildtypeString=$SYNCTYPE
+buildtype=$SYNCTYPE
+cd $BUILDTOOLS_DIR && bt_newREV=$(git log --pretty=format:'%h' -n 1)
+
+if [ "$param_exp" ] ; then 
+	buildtypeString=$SYNCTYPE" experimental build"
+	buildtype=$SYNCTYPE"-exp"
+	cd $BUILDTOOLS_DIR && bt_newREV=$(git log --pretty=format:'%h' -n 1)
+	if [ ! "$btREV" == "$bt_newREV" ] ; then 
+	git log --pretty=format:'%h (%an) : %s' --graph $btREV^..$bt_newREV > >(while read line; do btchangelog+="   ## $line" >&2; done)
+	
+	echo -e \
+	"   #############################################################################################$nocolor"\
+	"\n   ## Project: ChaosChrome buildtools"\
+	"\n   ## Branch: exp"\
+	"\n   ## Build-Type: $buildtypeString"\
+	"\n   ## Revision: $bt_newREV"\ 
+	"\n   #############################################################################################$nocolor"\ 
+	"\n   ## Changelog:"\
+	"\n   ##\n"\
+	"$btchangelog" >> $CD_DIR/chaosdroid_release/buildtools_"$buildtype"_"$bt_newREV"_changelog.txt
+    fi
+    
+fi
+}
+
+apk_string="$APKNAME"_"$buildtype"_"$BRANCH"_"$afterREV"
 
 echo -e \
 "   #############################################################################################$nocolor"\
 "\n   ## Project: Chromium Browser for Snapdragon"\
-"\n   ## Branch: $param_type"\
-"\n   ## Build-Type: $SYNCTYPE"\
+"\n   ## Branch: $param_branch"\
+"\n   ## Build-Type: $buildtypeString"\
 "\n   ## Build-Number: $BUILD_NUMBER"\
-"\n   ## Revision: $afterREV"\
+"\n   ## Revision: $afterREV"\ 
+"\n   ## Buildtools Revision: $bt_newREV"\ 
 "\n   #############################################################################################$nocolor"\ 
 "\n   ## Changelog:"\
 "\n   ##\n"\
@@ -237,8 +263,9 @@ echo -e \
 "\n   $blue$bold## Build-Type:$nobold$nocolor $SYNCTYPE"\
 "\n   $blue$bold## Build-Number:$nobold$nocolor $BUILD_NUMBER"\
 "\n   $blue$bold## Revision (current hash):$nobold$nocolor $afterREV"\
+"\n   $blue$bold## Buildtools Revision:$nobold$nocolor $bt_newREV"\
 "\n   $blue$bold#############################################################################################$nocolor"\ 
-"\n   $blue$bold## Changelog: :$nobold\n"\
+"\n   $blue$bold## Changelog: $nobold\n"\
 "$changelog"
 
 echo -e "$blue$bold   ######################################chaosdroid.com########################################$nocolor"
@@ -247,8 +274,6 @@ cd $SWE_DIR
 }
 ############################################################################################################################
 function getReady {
-#cdecho "BUILD" $blue "getReady: Generating Changelog ..." $nocolor
-# gen_changelog
 cdecho "BUILD" $blue "getReady: Generating Makefiles (runhooks)..." $nocolor
 source $SWE_DIR/src/build/android/envsetup.sh
 time gclient runhooks -j$NRJOBS > >(while read line; do cdecho "gclient" $blue "$line" $nocolor >&2; done)
