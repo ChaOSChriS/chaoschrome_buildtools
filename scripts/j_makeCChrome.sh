@@ -71,29 +71,48 @@ cdecho sep
 ############################################################################################################################
 
 #building
-set_gclient_file
+#set_gclient_file
 cleanENV
 checkBuildTools "depot_tools"
-time syncSource
+
+#TODO#######################
+####if param_type caf then####
+##time syncSource caf
+##time getReady
+##time gen_changelog caf
+##time buildAPK swe_browser_apk
+##time syncSource chaosdroid
+##echo -e "   $green## [BUILD]: FINISHED =)  ...$nocolor" <== replace with cdecho
+
+####elif param_type release then####
+##time syncSource caf
+##time syncSource chaosdroid
+##time getReady
+##time gen_changelog chaosdroid
+##time buildAPK swe_browser_apk
+##echo -e "   $green## [BUILD]: FINISHED =)  ...$nocolor" <== replace with cdecho
+
+####elif param_type release+ then####
+##time syncSource caf
+##time getReady
+##time gen_changelog caf
+##time buildAPK swe_browser_apk
+##time syncSource chaosdroid
+##time getReady
+##time gen_changelog chaosdroid
+##time buildAPK swe_browser_apk
+##echo -e "   $green## [BUILD]: FINISHED =)  ...$nocolor" <== replace with cdecho
+#TODO#######################
+
+time syncSource caf
+time syncSource chaosdroid
 time getReady
+time gen_changelog chaosdroid
 time buildAPK swe_browser_apk
+
 #time buildAPK content_shell_apk
 #time buildAPK chrome_shell_apk
-
 ############################################################################################################################
-
-#after push (type=caf only)
-if [ "$pushAfterBuild" = true ] ; then
-cd $CD_DiR/src.chaosdroid/chrome/android
-git checkout -b chaosdroidsync_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue $line $nocolor >&2; done)
-echo -e "   $blue## [BUILD]$nocolor: syncSource: updating chaosdroid remote repository ...$nocolor"
-git pull -X subtree=chrome/android $SWE_DIR/src/ src.chrome.android #:m46
-#git subtree pull --prefix=chrome/android $SWE_DIR/src/ src.chrome.android
-git push $CGIT chaosdroidsync_$BUILD_NUMBER:m46 > >(while read line; do cdecho "git" $blue $line $nocolor >&2; done)
-fi
-
-############################################################################################################################
-
 #finished
 echo -e "   $green## [BUILD]: FINISHED =)  ...$nocolor"
 
