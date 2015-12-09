@@ -6,9 +6,10 @@
 #                 this file contains needed functions to build cchrome with jenkins on unix-based systems                  #
 # 													                                                                       #
 ############################################################################################################################
-function edit_jobconfig {
+function edit_jobconfig { #possible with cli; instead of plugins, for build name and alias?: TODO
 #build #changelog
 #duration #description
+#build name #alias
 opt=$1
 xml_path=$jobdir"/"$2.xml
 xml_file=$2.xml
@@ -39,32 +40,50 @@ echo -e "   $appcolor$bold## [$app]$nobold$txtcolor: $msg$nocolor"
 fi
 }
 ############################################################################################################################
-function set_gclient_file {
-#prepairing build
-if [ "$1" = "caf" ]
+function preparingBuild { 
+SYNCTYPE=$1
+
+cdecho "BUILD" $blue "preparingBuild: Prepairing build environment..." $nocolor
+
+[ -f "$BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.$SYNCTYPE" ] || exit
+ln -nsf $BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.$SYNCTYPE $SWE_DIR/.gclient
+
+cdecho "BUILD" $blue "preparingBuild: set gclient-config" $nocolor
+cdecho "BUILD" $blue "preparingBuild: $BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.$SYNCTYPE -> $SWE_DIR/.gclient" $nocolor
+
+if [ -d "$SWE_DIR/src/" ]; then
+    cd $SWE_DIR/src/ && cafREV=$(git log src.chrome.android --pretty=format:'%h' -n 1)
+    cdecho "BUILD" $blue "preparingBuild: saved current caf revision ($cafREV)" $nocolor
+fi
+
+if [ -d "$CD_DIR/src.chaosdroid/chrome/android/" ]; then
+    cd $CD_DIR/src.chaosdroid/chrome/android/ && cdREV=$(git log HEAD --pretty=format:'%h' -n 1)
+    cdecho "BUILD" $blue "preparingBuild: saved current chaosdroid revision ($cdREV)" $nocolor
+fi
+
+if [ -d "$BUILDTOOLS_DIR" ]; then
+cd $BUILDTOOLS_DIR && btREV=$(git log HEAD --pretty=format:'%h' -n 1)
+cdecho "BUILD" $blue "preparingBuild: saved current buildtools revision ($btREV)" $nocolor
+fi
+
+if [ "$SYNCTYPE" = "caf" ]
 then
 	export GYP_DEFINES="OS=android clang=0"
-    cd $SWE_DIR
-	[ -f "$BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.caf" ] || exit
-	ln -nsf $BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.caf .gclient
 	APKNAME=SWE_Browser
-    
-    if [ -d "$SWE_DIR/src/" ]; then
-    cd $SWE_DIR/src/
-    cafREV=$(git log src.chrome.android --pretty=format:'%h' -n 1)
-    fi
-    
-elif [ "$1" = "chaosdroid" ]
+elif [ "$SYNCTYPE" = "chaosdroid" ]
 then
-	export GYP_DEFINES="OS=android clang=0"
-    cd $SWE_DIR
-	[ -f "$BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.chaosdroid" ] || exit
-	ln -nsf $BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.chaosdroid .gclient
-    APKNAME=ChaosChrome
-    if [ -d "$CD_DIR/src.chaosdroid/chrome/android/" ]; then
-    cd $CD_DIR/src.chaosdroid/chrome/android/
-    cdREV=$(git log HEAD --pretty=format:'%h' -n 1)
-    fi
+	export GYP_DEFINES="OS=android clang=0" #cd_channel;webrefiner;gsync
+    APKNAME=ChaosChrome    
+fi
+
+if [ "$param_exp" ] ; then 
+	APKNAME+="_exp"
+	cd $SWE_DIR
+	[ -f "$BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.$SYNCTYPE.exp" ] || exit
+	ln -nsf $BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.$SYNCTYPE.exp $SWE_DIR/.gclient
+	cdecho "BUILD" $blue "preparingBuild: set exp gclient-config" $nocolor
+	cdecho "BUILD" $blue "preparingBuild: $BUILDTOOLS_DIR/gclient/.gclient.$BRANCH.$SYNCTYPE.exp -> $SWE_DIR/.gclient" $nocolor
+	# cp exp gclient=>ssh
 fi
 }
 ############################################################################################################################
@@ -127,7 +146,7 @@ fi
 
 if [ "$SYNCTYPE" = "caf" ]
 then
-set_gclient_file caf
+preparingBuild caf
 cd $SWE_DIR
 cdecho "BUILD" $blue "syncSource: sync caf-code..." $nocolor
 gclient sync -j$NRJOBS  --nohooks --no-nag-max  --delete_unversioned_trees --force --reset> >(while read line; do cdecho "gclient" $blue "$line" $nocolor >&2; done)
@@ -157,7 +176,7 @@ fi
 
 elif [ "$SYNCTYPE" = "chaosdroid" ]
 then
-set_gclient_file chaosdroid
+preparingBuild chaosdroid
 cd $CD_DIR/src.chaosdroid/chrome/android
 git checkout -b chaosdroidsync_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
 cdecho "BUILD" $blue "syncSource: updating src.chaosdroid/chrome/android from caf ..." $nocolor
@@ -173,7 +192,7 @@ git branch -d gclient_m46_$BUILD_NUMBER && git branch -d cafsync_$BUILD_NUMBER &
 ############################################################################################################################
 function gen_changelog {
 cdecho "BUILD" $blue "gen_changelog: Generating Changelog ..." $nocolor
-
+#TODO: integrate buildtools repo rev & generate new file
 SYNCTYPE=$1
 beforeREV=0
 afterREV=0
