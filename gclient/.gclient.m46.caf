@@ -4,8 +4,11 @@ solutions = [
     "deps_file"   : "DEPS",
     "managed"     : True,
     "safesync_url": "",
-
   },
+  
+  { "name"        : "chaosdroid/buildtools",
+    "url"         : "git@github.com:ChaOSChriS/chaoschrome_buildtools.git@refs/remotes/origin/master",
+}, 
 ]
 target_os = ["android"]
 
