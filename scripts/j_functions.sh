@@ -41,7 +41,7 @@ fi
 ############################################################################################################################
 function set_gclient_file {
 #prepairing build
-if [ "$TYPE" = "caf" ]
+if [ "$1" = "caf" ]
 then
 	export GYP_DEFINES="OS=android clang=0"
     cd $SWE_DIR
@@ -51,10 +51,10 @@ then
     
     if [ -d "$SWE_DIR/src/" ]; then
     cd $SWE_DIR/src/
-    REV=$(git log src.chrome.android --pretty=format:'%h' -n 1)
+    cafREV=$(git log src.chrome.android --pretty=format:'%h' -n 1)
     fi
     
-elif [ "$TYPE" = "release" ]
+elif [ "$1" = "chaosdroid" ]
 then
 	export GYP_DEFINES="OS=android clang=0"
     cd $SWE_DIR
@@ -63,7 +63,7 @@ then
     APKNAME=ChaosChrome
     if [ -d "$CD_DIR/src.chaosdroid/chrome/android/" ]; then
     cd $CD_DIR/src.chaosdroid/chrome/android/
-    REV=$(git log HEAD --pretty=format:'%h' -n 1)
+    cdREV=$(git log HEAD --pretty=format:'%h' -n 1)
     fi
 fi
 }
@@ -72,15 +72,19 @@ function cleanENV {
 if [ "$param_cleanbuild" = true ]
 then
 cdecho "BUILD" $blue "cleanENV: do a clean build, cleaning..." $nocolor
+
 if [ -d "$SWE_DIR/src/" ]; then
 rm -fr $SWE_DIR/src/
 fi
+
 if [ -d "$CD_DIR/src.chaosdroid/chrome/android/" ]; then
 rm -fr $CD_DIR/src.chaosdroid/chrome/android/
 fi
+
 if [ -d "$CD_DIR/chaosdroid_release/" ]; then
 rm -fr $CD_DIR/chaosdroid_release/
 fi
+
 cdecho "BUILD" $blue "cleanENV: done with cleaning..." $nocolor
 fi
 }
@@ -123,6 +127,7 @@ fi
 
 if [ "$SYNCTYPE" = "caf" ]
 then
+set_gclient_file caf
 cd $SWE_DIR
 cdecho "BUILD" $blue "syncSource: sync caf-code..." $nocolor
 gclient sync -j$NRJOBS  --nohooks --no-nag-max  --delete_unversioned_trees --force --reset> >(while read line; do cdecho "gclient" $blue "$line" $nocolor >&2; done)
@@ -142,21 +147,23 @@ cdecho "BUILD" $blue "syncSource: caf-chromium repo is 8GB+, this will take fore
 cd $SWE_DIR/src/
 git subtree split -P chrome/android -b src.chrome.android > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)          
 cdecho "BUILD" $blue "syncSource: yeah... we are done with splitting (Y)..." $nocolor
+caf_newREV=$(git log src.chrome.android --pretty=format:'%h' -n 1)
 else
 cd $SWE_DIR/src/
 cdecho "BUILD" $blue "syncSource: updating src/chrome/android/ from caf ..." $nocolor
 git subtree pull --prefix=chrome/android origin m46 > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
-newREV=$(git log --pretty=format:'%h' -n 1)
+caf_newREV=$(git log src.chrome.android --pretty=format:'%h' -n 1)
 fi
 
 elif [ "$SYNCTYPE" = "chaosdroid" ]
 then
+set_gclient_file chaosdroid
 cd $CD_DIR/src.chaosdroid/chrome/android
 git checkout -b chaosdroidsync_$BUILD_NUMBER > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
 cdecho "BUILD" $blue "syncSource: updating src.chaosdroid/chrome/android from caf ..." $nocolor
 git pull -X subtree=chrome/android $SWE_DIR/src/ src.chrome.android > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done) #:m46 
 #git subtree pull --prefix=chrome/android $SWE_DIR/src/ src.chrome.android
-newREV=$(git log --pretty=format:'%h' -n 1)
+cd_newREV=$(git log --pretty=format:'%h' -n 1)
 git push $CGIT chaosdroidsync_$BUILD_NUMBER:m46 > >(while read line; do cdecho "git" $blue "$line" $nocolor >&2; done)
 fi
 
@@ -165,27 +172,64 @@ git branch -d gclient_m46_$BUILD_NUMBER && git branch -d cafsync_$BUILD_NUMBER &
 }
 ############################################################################################################################
 function gen_changelog {
+cdecho "BUILD" $blue "gen_changelog: Generating Changelog ..." $nocolor
+
+SYNCTYPE=$1
+beforeREV=0
+afterREV=0
+changelog=""
+
+if [ "$SYNCTYPE" = "caf" ]
+then
+beforeREV=$cafREV
+afterREV=$caf_newREV
+cd $SWE_DIR/src/
+git log src.chrome.android --pretty=format:'%h (%an) : %s' --graph $beforeREV^..$afterREV > >(while read line; do changelog+="   ## $line" >&2; done)
+
+elif [ "$SYNCTYPE" = "chaosdroid" ]
+then
+beforeREV=$cdREV
+afterREV=$cd_newREV
 cd $CD_DIR/src.chaosdroid/chrome/android/
+git log --pretty=format:'%h (%an) : %s' --graph $beforeREV^..$afterREV > >(while read line; do changelog+="   ## $line" >&2; done)
+fi
+
+apk_string="$APKNAME"_"$SYNCTYPE"_"$BRANCH"_"$afterREV"
+
+echo -e \
+"   #############################################################################################$nocolor"\
+"\n   ## Project: Chromium Browser for Snapdragon"\
+"\n   ## Branch: $param_type"\
+"\n   ## Build-Type: $SYNCTYPE"\
+"\n   ## Build-Number: $BUILD_NUMBER"\
+"\n   ## Revision: $afterREV"\
+"\n   #############################################################################################$nocolor"\ 
+"\n   ## Changelog:"\
+"\n   ##\n"\
+"$changelog" >> $CD_DIR/chaosdroid_release/"$apk_string"_changelog.txt
+
+cdecho "BUILD" $blue "gen_changelog: Changelog successful written to: " $nocolor
+cdecho "BUILD" $blue "gen_changelog: $CD_DIR/chaosdroid_release/$apk_string_changelog.txt" $nocolor
+
 echo -e \
 "   $blue$bold#############################################################################################$nocolor"\
-"\n   $blue$bold## Project:$nobold$nocolor Chromium Browser for Snapdragon"\
-"\n   $blue$bold## Branch:$nobold$nocolor $param_type"\
-"\n   $blue$bold## Build-Type:$nobold$nocolor $param_branch"\
+"\n   $blue$bold## Project:$nobold$nocolor Chromium Browser for Snapdragon"\'
+"\n   $blue$bold## Branch:$nobold$nocolor $param_branch"\
+"\n   $blue$bold## Build-Type:$nobold$nocolor $SYNCTYPE"\
 "\n   $blue$bold## Build-Number:$nobold$nocolor $BUILD_NUMBER"\
-"\n   $blue$bold## Revision (current hash):$nobold$nocolor $newREV"\
+"\n   $blue$bold## Revision (current hash):$nobold$nocolor $afterREV"\
 "\n   $blue$bold#############################################################################################$nocolor"\ 
-"\n   $blue$bold## Changelog: :$nobold\n"
-git log --pretty=format:'%h (%an) : %s' --graph $REV^..HEAD > >(while read line; do echo -e "   ## $line" >&2; done)
+"\n   $blue$bold## Changelog: :$nobold\n"\
+"$changelog"
+
 echo -e "$blue$bold   ######################################chaosdroid.com########################################$nocolor"
 cd $SWE_DIR
 #mytime="$(time ( ls ) 2>&1 1>/dev/null )"
 }
 ############################################################################################################################
 function getReady {
-apk_string="$APKNAME"_"$TYPE"_"$BRANCH"_"$newREV"
-cdecho "BUILD" $blue "getReady: Generating Changelog ..." $nocolor
-gen_changelog
-gen_changelog >> $CD_DIR/chaosdroid_release/"$apk_string"_changelog.txt
+#cdecho "BUILD" $blue "getReady: Generating Changelog ..." $nocolor
+# gen_changelog
 cdecho "BUILD" $blue "getReady: Generating Makefiles (runhooks)..." $nocolor
 source $SWE_DIR/src/build/android/envsetup.sh
 time gclient runhooks -j$NRJOBS > >(while read line; do cdecho "gclient" $blue "$line" $nocolor >&2; done)
